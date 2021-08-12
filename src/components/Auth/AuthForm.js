@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
-
+import { useState, useRef, useContext } from "react";
 import classes from "./AuthForm.module.css";
+import AuthContext from "../../store/auth-context";
 
 const AuthForm = () => {
+  const authCtx = useContext(AuthContext);
   const [isLogin, setIsLogin] = useState(true);
 
   const switchAuthModeHandler = () => {
@@ -35,13 +36,19 @@ const AuthForm = () => {
         password: password,
         returnSecureToken: true,
       }),
-    }).then((res) => {
-      if (res.ok) {
-        console.log(res);
-      } else {
-        console.log(res);
-      }
-    });
+    })
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          return res.json().then((data) => {
+            throw new Error("Authorization could not be completed");
+          });
+        }
+      })
+      .then((data) => {
+        authCtx.login(data.idToken);
+      });
   };
 
   return (
